@@ -43,6 +43,8 @@
             font-size: 11px;
             padding: 5px 8px;
             margin-left: 5px;
+            min-width: auto;
+            /* Reset min-width cho nút ngôn ngữ */
         }
 
         /* --- MAIN LAYOUT --- */
@@ -148,6 +150,7 @@
             padding: 10px;
         }
 
+        /* --- CONTROLS (UPDATED FOR BIGGER BUTTONS) --- */
         .controls {
             margin-bottom: 15px;
             z-index: 10;
@@ -155,6 +158,42 @@
             gap: 10px;
             flex-wrap: wrap;
             justify-content: center;
+            width: 100%;
+            /* Chiếm hết chiều ngang */
+            max-width: 600px;
+            /* Giới hạn độ rộng trên PC */
+        }
+
+        /* Nút bấm chung */
+        button {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #00f3ff;
+            color: #00f3ff;
+            padding: 12px 24px;
+            /* Tăng padding lên */
+            font-family: inherit;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: 0.3s;
+            font-size: 14px;
+            /* Chữ to hơn */
+            letter-spacing: 1px;
+            min-width: 100px;
+            /* Độ rộng tối thiểu */
+            border-radius: 4px;
+            /* Bo góc nhẹ */
+        }
+
+        button:hover {
+            background: #00f3ff;
+            color: #000;
+            box-shadow: 0 0 15px #00f3ff;
+        }
+
+        button.active {
+            background: #00f3ff;
+            color: #000;
         }
 
         #grid-container {
@@ -182,29 +221,6 @@
             box-shadow: 0 0 5px #00f3ff;
         }
 
-        button {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid #00f3ff;
-            color: #00f3ff;
-            padding: 8px 15px;
-            font-family: inherit;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-weight: bold;
-            transition: 0.3s;
-            font-size: 12px;
-        }
-
-        button:hover {
-            background: #00f3ff;
-            color: #000;
-            box-shadow: 0 0 15px #00f3ff;
-        }
-
-        button.active {
-            background: #00f3ff;
-            color: #000;
-        }
 
         /* --- MOBILE RESPONSIVE --- */
         @media (max-width: 900px) {
@@ -222,6 +238,24 @@
             .viewport {
                 order: 1;
                 min-height: 60vh;
+                padding-top: 20px;
+            }
+
+            /* Điều chỉnh Nút bấm trên Mobile */
+            .controls {
+                width: 95%;
+                /* Chiếm gần hết màn hình */
+                gap: 8px;
+            }
+
+            .controls button {
+                flex: 1;
+                /* Tự động giãn đều nhau */
+                padding: 15px 5px;
+                /* Nút cao hơn để dễ bấm */
+                font-size: 13px;
+                min-width: auto;
+                /* Bỏ giới hạn min-width để không bị tràn */
             }
 
             .panel.left {
