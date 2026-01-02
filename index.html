@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Matrix Cosmic Life</title>
+    <title>Matrix Cosmic Life v5.3</title>
     <style>
         /* --- 1. BASE STYLES --- */
         body {
@@ -44,7 +44,6 @@
             padding: 5px 8px;
             margin-left: 5px;
             min-width: auto;
-            /* Reset min-width cho nút ngôn ngữ */
         }
 
         /* --- MAIN LAYOUT --- */
@@ -150,7 +149,7 @@
             padding: 10px;
         }
 
-        /* --- CONTROLS (UPDATED FOR BIGGER BUTTONS) --- */
+        /* --- CONTROLS --- */
         .controls {
             margin-bottom: 15px;
             z-index: 10;
@@ -159,30 +158,23 @@
             flex-wrap: wrap;
             justify-content: center;
             width: 100%;
-            /* Chiếm hết chiều ngang */
             max-width: 600px;
-            /* Giới hạn độ rộng trên PC */
         }
 
-        /* Nút bấm chung */
         button {
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid #00f3ff;
             color: #00f3ff;
             padding: 12px 24px;
-            /* Tăng padding lên */
             font-family: inherit;
             cursor: pointer;
             text-transform: uppercase;
             font-weight: bold;
             transition: 0.3s;
             font-size: 14px;
-            /* Chữ to hơn */
             letter-spacing: 1px;
             min-width: 100px;
-            /* Độ rộng tối thiểu */
             border-radius: 4px;
-            /* Bo góc nhẹ */
         }
 
         button:hover {
@@ -221,7 +213,6 @@
             box-shadow: 0 0 5px #00f3ff;
         }
 
-
         /* --- MOBILE RESPONSIVE --- */
         @media (max-width: 900px) {
             body {
@@ -241,21 +232,16 @@
                 padding-top: 20px;
             }
 
-            /* Điều chỉnh Nút bấm trên Mobile */
             .controls {
                 width: 95%;
-                /* Chiếm gần hết màn hình */
                 gap: 8px;
             }
 
             .controls button {
                 flex: 1;
-                /* Tự động giãn đều nhau */
                 padding: 15px 5px;
-                /* Nút cao hơn để dễ bấm */
                 font-size: 13px;
                 min-width: auto;
-                /* Bỏ giới hạn min-width để không bị tràn */
             }
 
             .panel.left {
@@ -349,7 +335,7 @@
             </div>
             <div class="guide-item">
                 <span class="rule-highlight" id="g3t">Step 3: End</span><br>
-                <span id="g3d">Auto-stops at extinction.</span>
+                <span id="g3d">Auto-stops at extinction/stability.</span>
             </div>
 
             <div class="separator"></div>
@@ -375,10 +361,13 @@
         let isDrawing = false;
         let currentLang = 'vi';
 
-        // --- 2. ONLINE CONFIG (API CỦA BẠN) ---
+        // CẤU HÌNH BỘ NHỚ LỊCH SỬ (TĂNG LÊN 16 ĐỂ NHỚ DAI HƠN)
+        let gridHistory = [];
+        const HISTORY_LIMIT = 16;
+
+        // --- 2. ONLINE CONFIG ---
         const API_URL = "https://script.google.com/macros/s/AKfycbzp6PyejfQ0DPkkOu4dpuPn3fb5jAOXBgirxg5Sd0kT_V920DNyuBbKlswy5VbeMjCf8Q/exec";
 
-        // Tạo Device ID ngẫu nhiên (nếu chưa có)
         let deviceId = localStorage.getItem('gol_device_id');
         if (!deviceId) {
             deviceId = 'Captain-' + Math.floor(Math.random() * 10000);
@@ -392,11 +381,12 @@
                 gen: "GENERATION", pop: "POPULATION", peak: "PEAK RECORD",
                 guideHeader: "HOW TO PLAY", rulesHeader: "LOGIC",
                 st_run: "RUNNING...", st_stop: "PAUSED", st_die: "EXTINCTION", st_standby: "STANDBY",
+                st_stable: "STABLE (LOOP)", // Đã cân bằng
                 st_sending: "UPLOADING...",
                 start: "START", stop: "STOP", random: "CHAOS", clear: "VOID",
                 g1t: "1. Create:", g1d: "Touch & Drag to draw life.",
                 g2t: "2. Evolve:", g2d: "Press START to run.",
-                g3t: "3. End:", g3d: "Auto-stops if empty.",
+                g3t: "3. End:", g3d: "Auto-stops if loop/empty.",
                 r1t: "Lonely:", r1d: "Dies if < 2.",
                 r2t: "Survival:", r2d: "Lives if 2-3.",
                 r3t: "Crowded:", r3d: "Dies if > 3.",
@@ -407,11 +397,12 @@
                 gen: "THẾ HỆ", pop: "DÂN SỐ", peak: "KỶ LỤC",
                 guideHeader: "CÁCH CHƠI", rulesHeader: "NGUYÊN TẮC",
                 st_run: "ĐANG CHẠY...", st_stop: "TẠM DỪNG", st_die: "TUYỆT CHỦNG", st_standby: "CHỜ LỆNH",
+                st_stable: "ĐÃ CÂN BẰNG", // Đã cân bằng
                 st_sending: "ĐANG GỬI...",
                 start: "CHẠY", stop: "DỪNG", random: "NGẪU NHIÊN", clear: "XÓA BÀN",
                 g1t: "1. Gieo mầm:", g1d: "Chạm & Vuốt để vẽ.",
                 g2t: "2. Tiến hóa:", g2d: "Bấm CHẠY để xem.",
-                g3t: "3. Kết thúc:", g3d: "Tự dừng khi chết hết.",
+                g3t: "3. Kết thúc:", g3d: "Tự dừng khi ổn định.",
                 r1t: "Cô đơn:", r1d: "Chết nếu < 2.",
                 r2t: "Sinh tồn:", r2d: "Sống nếu 2-3.",
                 r3t: "Chật chội:", r3d: "Chết nếu > 3.",
@@ -431,14 +422,12 @@
                     const cell = document.createElement('div');
                     cell.classList.add('cell');
                     cell.id = `cell-${r}-${c}`;
-                    // PC Events
                     cell.addEventListener('mousedown', () => { isDrawing = true; toggleCell(r, c); });
                     cell.addEventListener('mouseover', () => { if (isDrawing) toggleCell(r, c, true); });
                     gridContainer.appendChild(cell);
                 }
             }
 
-            // MOBILE TOUCH EVENTS
             gridContainer.addEventListener('touchstart', handleTouch, { passive: false });
             gridContainer.addEventListener('touchmove', handleTouch, { passive: false });
             gridContainer.addEventListener('touchend', () => { isDrawing = false; });
@@ -465,6 +454,7 @@
                 updateUI();
             }
             updateStats();
+            gridHistory = []; // Reset lịch sử khi vẽ tay
         }
 
         window.addEventListener('mouseup', () => { isDrawing = false; });
@@ -492,6 +482,8 @@
 
         function computeNextGen() {
             let nextGrid = grid.map(arr => [...arr]);
+
+            // Tính toán thế hệ mới
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
                     let neighbors = countNeighbors(r, c);
@@ -501,6 +493,23 @@
                     else nextGrid[r][c] = state;
                 }
             }
+
+            // --- CHECK STABILITY (LOOP DETECTION) ---
+            const nextGridString = JSON.stringify(nextGrid);
+
+            // Nếu trạng thái này đã từng xuất hiện trong 16 thế hệ gần nhất -> Có lặp lại -> Dừng
+            if (gridHistory.includes(nextGridString)) {
+                stopGame();
+                setStatus('st_stable', '#00f3ff'); // Báo Cân Bằng (màu xanh neon)
+                submitScore(); // Vẫn gửi điểm
+                return;
+            }
+
+            // Lưu vào lịch sử
+            gridHistory.push(nextGridString);
+            if (gridHistory.length > HISTORY_LIMIT) gridHistory.shift(); // Chỉ giữ 16 cái mới nhất
+
+            // Cập nhật game
             grid = nextGrid;
             generation++;
             updateStats();
@@ -525,20 +534,24 @@
         function checkExtinction() {
             if (population === 0 && isRunning) {
                 stopGame();
-                submitScore(); // Gọi hàm gửi điểm
+                submitScore();
             }
         }
 
         function submitScore() {
             if (peakPopulation < 10) {
-                setStatus('st_die', '#ff0000'); // Chết yểu quá thì thôi không gửi
+                // Nếu chơi quá ngắn hoặc dân số quá ít thì không gửi
+                if (population === 0) setStatus('st_die', '#ff0000');
                 return;
             }
 
-            // Báo trạng thái đang gửi
+            // Chỉ đổi trạng thái thành "Đang gửi" nếu chưa phải là "Đã cân bằng"
             const statusEl = document.getElementById('system-status');
-            statusEl.innerText = langData[currentLang].st_sending;
-            statusEl.style.color = 'cyan';
+            const currentStatus = statusEl.innerText;
+            if (currentStatus !== langData[currentLang].st_stable) {
+                statusEl.innerText = langData[currentLang].st_sending;
+                statusEl.style.color = 'cyan';
+            }
 
             const data = {
                 deviceId: deviceId,
@@ -554,7 +567,13 @@
             }).then(() => {
                 console.log("Score Sent!");
                 setTimeout(() => {
-                    setStatus('st_die', '#ff0000');
+                    // Trả lại trạng thái đúng sau khi gửi xong
+                    if (population === 0) setStatus('st_die', '#ff0000');
+                    else if (statusEl.innerText === langData[currentLang].st_sending) {
+                        // Nếu đang là trạng thái gửi (không phải loop), thì trả về cân bằng hoặc standby
+                        setStatus('st_stable', '#00f3ff');
+                    }
+
                     alert(currentLang === 'vi'
                         ? `Đã lưu kỷ lục của ${deviceId} lên Vũ trụ!`
                         : `Record for ${deviceId} saved to Universe!`);
@@ -575,6 +594,7 @@
         }
 
         function startGame() {
+            gridHistory = []; // Reset lịch sử
             if (!isRunning && population > 0) {
                 isRunning = true;
                 intervalId = setInterval(computeNextGen, 100);
@@ -591,13 +611,18 @@
             clearInterval(intervalId);
             document.getElementById('btn-start').classList.remove('active');
             document.getElementById('btn-stop').classList.add('active');
-            if (population > 0) setStatus('st_stop', 'yellow');
+
+            // Nếu đang chạy mà bấm dừng, và chưa cân bằng, thì báo tạm dừng
+            const statusEl = document.getElementById('system-status');
+            if (population > 0 && statusEl.innerText !== langData[currentLang].st_stable) {
+                setStatus('st_stop', 'yellow');
+            }
         }
 
         function clearGrid() {
             stopGame();
             grid = grid.map(row => row.fill(0));
-            generation = 0; population = 0;
+            generation = 0; population = 0; gridHistory = [];
             updateStats(); updateUI();
             setStatus('st_standby', 'yellow');
         }
@@ -605,7 +630,7 @@
         function randomize() {
             stopGame();
             grid = grid.map(row => row.map(() => Math.random() > 0.85 ? 1 : 0));
-            generation = 0;
+            generation = 0; gridHistory = [];
             updateStats(); updateUI();
             setStatus('st_standby', 'yellow');
         }
